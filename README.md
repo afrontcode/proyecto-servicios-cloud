@@ -49,14 +49,19 @@ El proyecto contempla dos entornos de ejecución:
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
-cd <NOMBRE_DEL_REPOSITORIO>
+git clone https://github.com/afrontcode/proyecto-servicios-cloud.git
+cd proyecto-servicios-cloud
 ```
 
 ### 2. Configurar las variables de entorno
 
-Configurar las variables requeridas por la aplicación y PostgreSQL según los archivos de configuración del proyecto.
+Copiar el archivo de ejemplo y ajustar los valores si hace falta:
 
+```bash
+cp .env.example .env
+```
+
+Las credenciales de AWS se leen del perfil `finops-demo` del AWS CLI.
 No almacenar credenciales ni claves de AWS directamente en el repositorio.
 
 ### 3. Construir e iniciar los contenedores
@@ -71,6 +76,8 @@ docker compose up -d --build
 docker compose ps
 ```
 
+Grafana queda disponible en http://localhost:3000.
+
 ### 5. Consultar los logs
 
 ```bash
@@ -83,7 +90,15 @@ docker compose logs -f
 docker compose down
 ```
 
-> Los comandos anteriores presuponen que existe un archivo Compose compatible en la raíz del repositorio.
+## Estructura del repositorio
+
+```
+config/    configuración y precios de referencia
+docs/      políticas IAM de ejemplo
+infra/     Terraform (red, seguridad y cómputo)
+scripts/   scripts de apoyo
+src/       código Python
+```
 
 ## Despliegue en AWS
 
@@ -96,3 +111,11 @@ La arquitectura de despliegue contempla:
 - IAM para la gestión de permisos.
 - AWS Systems Manager para la administración de las instancias.
 - Volúmenes EBS para el almacenamiento persistente.
+
+La infraestructura se define en la carpeta `infra/`:
+
+```bash
+cd infra
+terraform init
+terraform plan
+```
