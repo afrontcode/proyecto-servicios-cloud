@@ -1,0 +1,60 @@
+# Servicios locales (costo cero). Los recursos cloud viven en AWS real.
+services:
+  postgres:
+    image: postgres:16
+    container_name: finops-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-finops}
+      POSTGRES_USER: ${POSTGRES_USER:-finops}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finops}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-finops} -d ${POSTGRES_DB:-finops}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: finops-app:local
+    container_name: finops-app
+    environment:
+      # Dentro de la red de Docker el host es el NOMBRE DEL SERVICIO, no localhost,
+      # y el puerto es el interno 5432 (5433 es solo el mapeo hacia tu PC).
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-finops}
+      POSTGRES_USER: ${POSTGRES_USER:-finops}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finops}
+      AWS_PROFILE: ${AWS_PROFILE:-finops-demo}
+      AWS_REGION: ${AWS_REGION:-us-east-2}
+      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL:-}
+    volumes:
+      # Credenciales de solo lectura: nunca se copian dentro de la imagen
+      - ${HOME}/.aws:/home/finops/.aws:ro,z
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: finops-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafanadata:/var/lib/grafana
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  grafanadata:
