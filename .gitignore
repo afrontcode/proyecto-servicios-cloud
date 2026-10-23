@@ -1,0 +1,14 @@
+# Secretos y configuración local
+.env
+.aws/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+graphify-out/
+
+# Documentos de trabajo interno (no se publican)
+docs/PLAN_AWS_FREE.md
+docs/REPARTO-EQUIPO.md
